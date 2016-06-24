@@ -1,5 +1,5 @@
 #!/bin/bash
-#Requirements: mailutils must be installed STMP must be configured to send outgoing mail
+#Requirements: mailutils must be installed STMP must be configured to send outgoing mail.  curl must also be installed.
 #You will need to set your email address below
 #I have some Newegg GTX 1080 and 1070 urls below.  You can add/remove as needed.  Only Newegg URLs will work at this time.
 #Default is to check every 10 seconds until a match is found.  Then it will stop alerting for 5 min once an email has been set.
@@ -12,14 +12,10 @@ MAIL=false
 do
   for i in "${URL[@]}"
   do
-    wget -q "${i}"
-    FILE=`echo "${i}" | cut -d "/" -f5`
-    CARD=`grep -F -c ${STOCK} "${FILE}"`
-    if [ $CARD == 0 ]; then
-      echo "${i}" | mail -s "card in stock" ${MYEMAIL} 
+    if [ `curl -s ${i} | grep -F -c "product_instock:['0']"` == 0 ]; then
+      echo "${i}" | mail -s "card in stock" ${MYEMAIL}
       MAIL=TRUE
     fi
-    rm "${FILE}"
   done
   if [ $MAIL == TRUE ]; then
     sleep 300
